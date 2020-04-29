@@ -8,9 +8,16 @@ const route = Router();
 module.exports = (app) => {
   app.use('/users', route);
 
+  const listUsers = async (req, res) => {
+    try {
+      const users = await User.find().populate('company');
+      return res.send(users);
+    } catch (e) {
+      return ApiHelper.status400Error(res, 'Unexpected error');
+    }
+  };
+
   const registrer = async (req, res) => {
-    res.header('Access-Control-Allow-Origin', 'true');
-    res.header('Access-Control-Allow-Headers', 'X-Requested-With');
     try {
       const queryObject = {
         ...req.body,
@@ -36,8 +43,10 @@ module.exports = (app) => {
         return ApiHelper.status400Error(res, 'User already registered.');
       }
 
-      user = new User(queryObject);
       company = new Company(queryObject);
+      user = new User({ ...queryObject, ...{ company: company.id } });
+
+      company.users.push(user.id);
 
       await user.save();
       await company.save();
@@ -48,5 +57,6 @@ module.exports = (app) => {
     }
   };
 
+  route.get('/', listUsers);
   route.post('/', registrer);
 };

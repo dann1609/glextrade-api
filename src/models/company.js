@@ -1,6 +1,10 @@
 const mongoose = require('mongoose');
 const Joi = require('@hapi/joi');
 
+const { companyRef, userRef } = require('./ref');
+
+const ref = companyRef;
+
 const companySchema = new mongoose.Schema({
   name: {
     type: String,
@@ -18,9 +22,14 @@ const companySchema = new mongoose.Schema({
   },
   sector: {
   },
+  users: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: userRef,
+  },
+  ],
 });
 
-const Company = mongoose.model('Company', companySchema);
+const Company = mongoose.model(ref, companySchema);
 
 function validateCompany(company) {
   const schema = Joi.object({
@@ -31,5 +40,6 @@ function validateCompany(company) {
   return schema.validate(company);
 }
 
+module.exports.companyRef = ref;
 module.exports.Company = Company;
 module.exports.validateCompany = validateCompany;

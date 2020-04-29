@@ -11,7 +11,7 @@ dotenv.config();
 const startServer = async () => {
   const { message, error } = await loaders.load(app);
 
-  console.log('\n', error || message, error ? 'Load failed':'');
+  console.log('\n', error || message, error ? 'Load failed' : '');
 
   const port = process.env.PORT || 3001;
   app.listen(port, () => console.log(`
