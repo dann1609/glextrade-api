@@ -1,12 +1,15 @@
 const { Router, Request, Response } = require('express');
 const {User,validateUser} = require('../../models/user');
 const { Company, validateCompany } = require('../../models/company');
+const ApiHelper = require('../apiHelper');
 const route = Router();
 
 module.exports = (app) =>{
     app.use('/users',route)
 
     const registrer = async (req,res)=>{
+        res.header("Access-Control-Allow-Origin", "true");
+        res.header("Access-Control-Allow-Headers", "X-Requested-With");
         try {
             const queryObject = {
                 ...req.body,
@@ -16,20 +19,24 @@ module.exports = (app) =>{
             const {error:errorCompany} = validateCompany(queryObject);
             const error = errorUser ||errorCompany;
 
+            console.log(error);
+
             if (error) {
-                return res.status(400).send(error.details[0].message);
+                return ApiHelper.status400Error(res,error.details[0].message);
             }
 
             let company = await Company.findOne({domain:queryObject.domain});
 
+            console.log(company)
+
             if(company){
-                return res.status(400).send('Company already registered')
+                return ApiHelper.status400Error(res,'Company already registered')
             }
 
             let user = await User.findOne({email: queryObject.email});
 
             if (user) {
-                return res.status(400).send('User already registered.')
+                return ApiHelper.status400Error(res,'User already registered.');
             }
 
             user = new User(queryObject);
@@ -44,7 +51,7 @@ module.exports = (app) =>{
 
         }catch (e) {
             console.error(e)
-            return res.status(400).send('Unexpected error')
+            return ApiHelper.status400Error(res,'Unexpected error')
         }
     };
 

@@ -1,6 +1,10 @@
 const express = require('express');
 const routes = require('./../api')
 
+const welcomeMesage = {
+    message:'Welcome to glextrade api service!'
+};
+
 module.exports = {
     load:(app)=>{
         app.use(express.json());
@@ -8,7 +12,11 @@ module.exports = {
         app.use(routes());
 
         app.get('/', function(req, res) {
-            res.status(200).send('Welcome to glextrade api service!');
+            res.status(200).send(welcomeMesage);
+        });
+
+        app.post('/', function(req, res) {
+            res.status(200).send(welcomeMesage);
         });
 
         app.use(function(req, res) {
