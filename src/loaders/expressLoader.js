@@ -1,26 +1,27 @@
 const express = require('express');
-const routes = require('./../api')
+const routes = require('../api');
+const ApiHelper = require('../helpers/apiHelper');
 
 const welcomeMesage = {
-    message:'Welcome to glextrade api service!'
+  message: 'Welcome to glextrade api service!',
 };
 
 module.exports = {
-    load:(app)=>{
-        app.use(express.json());
+  load: (app) => {
+    app.use(express.json());
 
-        app.use(routes());
+    app.use(routes());
 
-        app.get('/', function(req, res) {
-            res.status(200).send(welcomeMesage);
-        });
+    app.get('/', (req, res) => {
+      res.status(200).send(welcomeMesage);
+    });
 
-        app.post('/', function(req, res) {
-            res.status(200).send(welcomeMesage);
-        });
+    app.post('/', (req, res) => {
+      res.status(200).send(welcomeMesage);
+    });
 
-        app.use(function(req, res) {
-            res.status(404).send('Sorry cant find that!');
-        });
-    }
+    app.use((req, res) => {
+      ApiHelper.status404Error(res, 'Sorry cant find that!');
+    });
+  },
 };

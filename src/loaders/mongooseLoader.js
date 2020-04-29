@@ -1,9 +1,15 @@
 const mongoose = require('mongoose');
 
 module.exports = {
-    load: ()=>{
-        return mongoose.connect('mongodb://localhost/glextrade')
-            .then(()=>console.log('\n','Connected to MongoDB'))
-            .catch(err =>console.error('\n','Could nor connect to MongoDB...', err))
-    }
-}
+  load: () => mongoose.connect('mongodb://localhost/glextrade')
+    .then((connection) => {
+      // eslint-disable-next-line no-console
+      console.log('\n', 'Connected to MongoDB');
+      return connection;
+    })
+    .catch((error) => {
+      // eslint-disable-next-line no-console
+      console.error('\n', 'Could nor connect to MongoDB...');
+      return { error: error.name };
+    }),
+};

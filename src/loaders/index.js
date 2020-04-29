@@ -1,16 +1,25 @@
-const expressLoader = require('./expressLoader')
-const mongooseLoader = require('./mongooseLoader')
+const expressLoader = require('./expressLoader');
+const mongooseLoader = require('./mongooseLoader');
+const ApiHelper = require('../helpers/apiHelper');
 
 module.exports = {
-load: async (app)=>{
-    console.log('loading loaders')
+  load: async (app) => {
+    // eslint-disable-next-line no-console
+    console.log('loading loaders');
 
     const mongoConnection = await mongooseLoader.load();
 
-    expressLoader.load(app)
+    if (mongoConnection.error) {
+      app.use((req, res) => {
+        ApiHelper.status500Error(res, 'Sorry db is temporally unable!');
+      });
+
+      return mongoConnection;
+    }
+
+    expressLoader.load(app);
 
 
-
-    return true;
-}
+    return { message: 'Successfully loaded.' };
+  },
 };
