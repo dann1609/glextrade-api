@@ -1,7 +1,10 @@
 const mongoose = require('mongoose');
 const Joi = require('@hapi/joi');
+const jwt = require('jsonwebtoken');
+const _ = require('lodash');
 
 const { userRef, companyRef } = require('./ref');
+const { Session } = require('./session');
 
 const ref = userRef;
 
@@ -24,6 +27,14 @@ const userSchema = new mongoose.Schema({
   },
 });
 
+userSchema.methods.generateSession = async function () {
+  const token = jwt.sign(_.omit(this.toObject(), ['password']), process.env.JWT_PRIVATE_KEY);
+  const session = new Session({ token, user: this.id });
+
+  await session.save();
+  return session;
+};
+
 const User = mongoose.model(ref, userSchema);
 
 function validateUser(user) {
@@ -35,6 +46,16 @@ function validateUser(user) {
   return schema.validate(user);
 }
 
+function validateShortUser(user) {
+  const schema = Joi.object({
+    email: Joi.string().required(),
+    password: Joi.string().required(),
+  });
+
+  return schema.validate(user);
+}
+
 module.exports.userRef = ref;
 module.exports.User = User;
 module.exports.validateUser = validateUser;
+module.exports.validateShortUser = validateShortUser;
