@@ -16,7 +16,7 @@ const auth = async (req, res) => {
       return ApiHelper.status400Error(res, error.details[0].message);
     }
 
-    const user = await User.findOne({ email: queryObject.email });
+    const user = await User.findOne({ email: queryObject.email }).populate('company');
 
     if (!user) {
       return ApiHelper.status400Error(res, 'Invalid email or password');

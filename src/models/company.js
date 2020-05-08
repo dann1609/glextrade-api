@@ -19,14 +19,24 @@ const companySchema = new mongoose.Schema({
     maxlength: 255,
   },
   country: {
+    type: String,
+    required: [true, 'Please enter company country'],
   },
-  sector: {
+  industry: {type: String,
+    required: [true, 'Please enter company industry'],
+  },
+  type:{
+    type: String,
+    required: [true, 'Please enter company type'],
   },
   users: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: userRef,
   },
   ],
+  phone:{
+    type: String,
+  }
 });
 
 const Company = mongoose.model(ref, companySchema);
@@ -34,6 +44,8 @@ const Company = mongoose.model(ref, companySchema);
 function validateCompany(company) {
   const schema = Joi.object({
     name: Joi.string().min(1).max(255).required(),
+    country: Joi.string().required(),
+    type: Joi.string().required(),
     domain: Joi.string().min(1).max(255).required(),
   }).unknown(true);
 

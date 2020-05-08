@@ -23,11 +23,14 @@ const register = async (req, res) => {
       ...req.body,
       domain: (req.body.email || '').split('@')[1],
     };
+    console.log(queryObject)
+
     const { error: errorUser } = validateUser(queryObject);
     const { error: errorCompany } = validateCompany(queryObject);
     const error = errorUser || errorCompany;
 
     if (error) {
+      console.log(error.details);
       return ApiHelper.status400Error(res, error.details[0].message);
     }
 
@@ -58,7 +61,10 @@ const register = async (req, res) => {
 
     const session = await user.generateSession();
 
-    return res.send({ ...session.toObject(), user: _.omit(user.toObject(), ['password']) });
+    return res.send({
+      ...session.toObject(),
+      user: _.omit({ ...user.toObject(), ...{ company } }, ['password']),
+    });
   } catch (e) {
     console.log(e);
     return ApiHelper.status400Error(res, 'Unexpected error');
