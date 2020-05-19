@@ -21,7 +21,7 @@ module.exports = {
     });
 
     app.use((req, res) => {
-      ApiHelper.status404Error(res, 'Sorry cant find that!');
+      ApiHelper.statusNotFound(res, 'Sorry cant find that!');
     });
   },
 };

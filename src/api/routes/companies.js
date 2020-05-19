@@ -1,6 +1,6 @@
 const { Router } = require('express');
+const { isAuth } = require('../middlewares');
 const { Company } = require('../../models/company');
-const { Session } = require('../../models/session');
 const ApiHelper = require('../../helpers/apiHelper');
 
 const route = Router();
@@ -10,23 +10,25 @@ const listCompanies = async (req, res) => {
     const companies = await Company.find().populate('users');
     return res.send(companies);
   } catch (e) {
-    return ApiHelper.status400Error(res, 'Unexpected error');
+    return ApiHelper.statusBadRequest(res, 'Unexpected error');
   }
 };
+
 const updateCompany = async (req, res) => {
   const queryObject = req.body;
+  const { currentUser } = req;
+  const { company } = currentUser;
 
-  const session = await Session.findOne({ token: queryObject.token }).populate('user');
-  const user = await session.user.populate('company').execPopulate();
-  const { company } = user;
+  Object.assign(company, queryObject);
 
-  company.profileUrl = queryObject.profileUrl || company.profileUrl;
-  company.coverUrl = queryObject.coverUrl || company.coverUrl;
-  company.videoUrl = queryObject.videoUrl || company.videoUrl;
+  try {
+    const savedCompany = await company.save();
 
-  await company.save();
-
-  res.send(company);
+    res.send(savedCompany);
+  } catch (e) {
+    console.error(e);
+    ApiHelper.statusInternalServerError(res, e.message);
+  }
 };
 
 const linkRoute = (app) => {
@@ -34,7 +36,7 @@ const linkRoute = (app) => {
 
 
   route.get('/', listCompanies);
-  route.put('/my_company', updateCompany);
+  route.put('/my_company', isAuth, updateCompany);
 };
 
 module.exports = {

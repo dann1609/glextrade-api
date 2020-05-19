@@ -34,7 +34,7 @@ const signS3 = (req, res) => {
     });
   } catch (e) {
     console.error(e);
-    return ApiHelper.status400Error(res, 'Unexpected error');
+    return ApiHelper.statusBadRequest(res, 'Unexpected error');
   }
   return false;
 };

@@ -12,7 +12,7 @@ module.exports = {
 
     if (mongoConnection.error) {
       app.use((req, res) => {
-        ApiHelper.status500Error(res, 'Sorry db is temporally unable!');
+        ApiHelper.statusInternalServerError(res, 'Sorry db is temporally unable!');
       });
 
       return mongoConnection;

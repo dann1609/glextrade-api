@@ -13,7 +13,7 @@ const listUsers = async (req, res) => {
     const users = await User.find().populate('company');
     return res.send(users);
   } catch (e) {
-    return ApiHelper.status400Error(res, 'Unexpected error');
+    return ApiHelper.statusBadRequest(res, 'Unexpected error');
   }
 };
 
@@ -30,19 +30,19 @@ const register = async (req, res) => {
 
     if (error) {
       console.error(error.details);
-      return ApiHelper.status400Error(res, error.details[0].message);
+      return ApiHelper.statusBadRequest(res, error.details[0].message);
     }
 
     let company = await Company.findOne({ domain: queryObject.domain });
 
     if (company) {
-      return ApiHelper.status400Error(res, 'Company already registered');
+      return ApiHelper.statusBadRequest(res, 'Company already registered');
     }
 
     let user = await User.findOne({ email: queryObject.email });
 
     if (user) {
-      return ApiHelper.status400Error(res, 'User already registered.');
+      return ApiHelper.statusBadRequest(res, 'User already registered.');
     }
 
     company = new Company(queryObject);
@@ -66,7 +66,7 @@ const register = async (req, res) => {
     });
   } catch (e) {
     console.error(e);
-    return ApiHelper.status400Error(res, 'Unexpected error');
+    return ApiHelper.statusBadRequest(res, 'Unexpected error');
   }
 };
 

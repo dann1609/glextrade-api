@@ -55,6 +55,7 @@ function validateCompany(company) {
   const schema = Joi.object({
     name: Joi.string().min(1).max(255).required(),
     country: Joi.string().required(),
+    industry: Joi.string().required(),
     type: Joi.string().required(),
     domain: Joi.string().min(1).max(255).required(),
   }).unknown(true);

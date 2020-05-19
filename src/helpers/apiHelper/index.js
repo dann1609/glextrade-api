@@ -1,12 +1,15 @@
 
 const ApiHelper = {
-  status400Error: (res, error) => res.status(400).send({
+  statusBadRequest: (res, error) => res.status(400).send({
     error,
   }),
-  status404Error: (res, error) => res.status(404).send({
+  statusUnauthorized: (res, error) => res.status(401).send({
     error,
   }),
-  status500Error: (res, error) => res.status(500).send({
+  statusNotFound: (res, error) => res.status(404).send({
+    error,
+  }),
+  statusInternalServerError: (res, error) => res.status(500).send({
     error,
   }),
 };
