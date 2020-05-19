@@ -22,10 +22,11 @@ const companySchema = new mongoose.Schema({
     type: String,
     required: [true, 'Please enter company country'],
   },
-  industry: {type: String,
+  industry: {
+    type: String,
     required: [true, 'Please enter company industry'],
   },
-  type:{
+  type: {
     type: String,
     required: [true, 'Please enter company type'],
   },
@@ -34,9 +35,18 @@ const companySchema = new mongoose.Schema({
     ref: userRef,
   },
   ],
-  phone:{
+  phone: {
     type: String,
-  }
+  },
+  profileUrl: {
+    type: String,
+  },
+  coverUrl: {
+    type: String,
+  },
+  videoUrl: {
+    type: String,
+  },
 });
 
 const Company = mongoose.model(ref, companySchema);

@@ -1,5 +1,6 @@
 const expressLoader = require('./expressLoader');
 const mongooseLoader = require('./mongooseLoader');
+const awsLoader = require('./awsLoader.js');
 const ApiHelper = require('../helpers/apiHelper');
 
 module.exports = {
@@ -16,6 +17,8 @@ module.exports = {
 
       return mongoConnection;
     }
+
+    awsLoader.load();
 
     expressLoader.load(app);
 
