@@ -9,7 +9,7 @@ const listCompanies = async (req, res) => {
   try {
     const companies = await Company.find().populate('users');
     return res.send(companies);
-  } catch (e) {
+  } catch (error) {
     return ApiHelper.statusBadRequest(res, 'Unexpected error');
   }
 };
@@ -25,9 +25,9 @@ const updateCompany = async (req, res) => {
     const savedCompany = await company.save();
 
     res.send(savedCompany);
-  } catch (e) {
-    console.error(e);
-    ApiHelper.statusInternalServerError(res, e.message);
+  } catch (error) {
+    console.error(error);
+    ApiHelper.statusInternalServerError(res, error.message);
   }
 };
 

@@ -31,7 +31,7 @@ const auth = async (req, res) => {
     const session = await user.generateSession();
 
     return res.send({ ...session.toObject(), user: _.omit(user.toObject(), ['password']) });
-  } catch (e) {
+  } catch (error) {
     return ApiHelper.statusBadRequest(res, 'Unexpected error');
   }
 };

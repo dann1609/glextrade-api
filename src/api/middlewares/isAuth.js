@@ -4,7 +4,7 @@ const ApiHelper = require('../../helpers/apiHelper');
 const isAuth = async (req, res, next) => {
   const token = req.header('Authorization');
   if (!token) {
-    return ApiHelper.statusBadRequest('No token provided');
+    return ApiHelper.statusBadRequest(res, 'No token provided');
   }
 
   const session = await Session.findOne({ token }).populate('user');

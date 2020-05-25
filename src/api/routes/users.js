@@ -12,7 +12,7 @@ const listUsers = async (req, res) => {
   try {
     const users = await User.find().populate('company');
     return res.send(users);
-  } catch (e) {
+  } catch (error) {
     return ApiHelper.statusBadRequest(res, 'Unexpected error');
   }
 };
@@ -64,8 +64,8 @@ const register = async (req, res) => {
       ...session.toObject(),
       user: _.omit({ ...user.toObject(), ...{ company } }, ['password']),
     });
-  } catch (e) {
-    console.error(e);
+  } catch (error) {
+    console.error(error);
     return ApiHelper.statusBadRequest(res, 'Unexpected error');
   }
 };
