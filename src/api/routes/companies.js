@@ -1,14 +1,18 @@
 const { Router } = require('express');
-const { isAuth } = require('../middlewares');
+const { Auth } = require('../middlewares');
 const { Company } = require('../../models/company');
 const ApiHelper = require('../../helpers/apiHelper');
 
 const route = Router();
 
 const listCompanies = async (req, res) => {
+  const isAuth = !!req.currentUser;
+  console.log(isAuth);
   try {
-    const companies = await Company.find().populate('users');
-    return res.send(companies);
+    const companies = isAuth
+      ? await Company.find().populate('users')
+      : await Company.find().select('name country industry type coverUrl profileUrl');
+    return res.send({ companies });
   } catch (error) {
     return ApiHelper.statusBadRequest(res, 'Unexpected error');
   }
@@ -35,8 +39,8 @@ const linkRoute = (app) => {
   app.use('/companies', route);
 
 
-  route.get('/', listCompanies);
-  route.put('/my_company', isAuth, updateCompany);
+  route.get('/', Auth.isAuth, listCompanies);
+  route.put('/my_company', Auth.needAuth, updateCompany);
 };
 
 module.exports = {

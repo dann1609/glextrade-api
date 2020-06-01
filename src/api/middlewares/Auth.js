@@ -1,10 +1,15 @@
 const { Session } = require('../../models/session');
 const ApiHelper = require('../../helpers/apiHelper');
 
-const isAuth = async (req, res, next) => {
+const isAuth = async (req, res, next, params) => {
+  const { isRequired } = params || {};
+
   const token = req.header('Authorization');
   if (!token) {
-    return ApiHelper.statusBadRequest(res, 'No token provided');
+    if (isRequired) {
+      return ApiHelper.statusBadRequest(res, 'No token provided');
+    }
+    next();
   }
 
   const session = await Session.findOne({ token }).populate('user');
@@ -25,4 +30,14 @@ const isAuth = async (req, res, next) => {
   return next();
 };
 
-module.exports = isAuth;
+const needAuth = async (req, res, next) => {
+  const isRequired = true;
+  await isAuth(req, res, next, {
+    isRequired,
+  });
+};
+
+module.exports = {
+  isAuth,
+  needAuth,
+};

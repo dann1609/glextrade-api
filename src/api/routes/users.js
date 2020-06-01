@@ -11,7 +11,7 @@ const route = Router();
 const listUsers = async (req, res) => {
   try {
     const users = await User.find().populate('company');
-    return res.send(users);
+    return res.send({ users });
   } catch (error) {
     return ApiHelper.statusBadRequest(res, 'Unexpected error');
   }
@@ -78,7 +78,5 @@ const linkRoute = (app) => {
 };
 
 module.exports = {
-  listUsers,
-  register,
   linkRoute,
 };

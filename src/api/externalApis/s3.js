@@ -42,6 +42,7 @@ const uploadVideo = (data) => fetch(data.signedRequest, {
     'Content-Type': data.fileType,
   },
   mode: 'cors',
+  body: data.file,
 }).then((response) => {
   if (response.status === 200) {
     return {
