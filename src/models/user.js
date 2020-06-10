@@ -27,6 +27,7 @@ const userSchema = new mongoose.Schema({
   },
 });
 
+// eslint-disable-next-line func-names
 userSchema.methods.generateSession = async function () {
   const token = jwt.sign(_.omit(this.toObject(), ['password']), process.env.JWT_PRIVATE_KEY);
   const session = new Session({ token, user: this.id });

@@ -6,6 +6,8 @@ const ref = eventRef;
 
 const eventTypes = {
   SEEN_PROFILE: 'SEEN_PROFILE',
+  CONNECTION_REQUEST: 'CONNECTION_REQUEST',
+  CONNECTION_ACCEPTED: 'CONNECTION_ACCEPTED',
 };
 
 const eventSchema = new mongoose.Schema({
@@ -32,6 +34,16 @@ const eventSchema = new mongoose.Schema({
 
 const GlextradeEvent = mongoose.model(ref, eventSchema);
 
+const getDefaultCompanyEventParams = (eventType, currentCompany, company) => ({
+  date: new Date(),
+  type: eventType,
+  data: {
+    company: currentCompany.id,
+  },
+  owner: company,
+});
+
 module.exports.eventRef = ref;
 module.exports.GlextradeEvent = GlextradeEvent;
 module.exports.eventTypes = eventTypes;
+module.exports.getDefaultCompanyEventParams = getDefaultCompanyEventParams;

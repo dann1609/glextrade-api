@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const Joi = require('@hapi/joi');
 
-const { companyRef, userRef } = require('./ref');
+const { companyRef, userRef, relationRef } = require('./ref');
 
 const ref = companyRef;
 
@@ -47,6 +47,19 @@ const companySchema = new mongoose.Schema({
   videoUrl: {
     type: String,
   },
+  network: [
+    {
+      company: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: companyRef,
+      },
+      relation: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: relationRef,
+      },
+    },
+  ],
+  ourRelation: {},
 });
 
 const Company = mongoose.model(ref, companySchema);

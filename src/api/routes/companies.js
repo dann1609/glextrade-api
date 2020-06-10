@@ -1,20 +1,15 @@
 const { Router } = require('express');
 const { Auth } = require('../middlewares');
 const { Company } = require('../../models/company');
-const { GlextradeEvent, eventTypes } = require('../../models/glextradeEvent');
+const { Relationship, relationTypes } = require('../../models/relationship');
+const { GlextradeEvent, eventTypes, getDefaultCompanyEventParams } = require('../../models/glextradeEvent');
 const ApiHelper = require('../../helpers/apiHelper');
 
 const route = Router();
 
 const profileSeenEvent = (currentCompany, company) => {
-  const eventParams = {
-    date: new Date(),
-    type: eventTypes.SEEN_PROFILE,
-    data: {
-      company: currentCompany.id,
-    },
-    owner: company,
-  };
+  const eventParams = getDefaultCompanyEventParams(eventTypes.SEEN_PROFILE,
+    currentCompany, company);
 
   const event = new GlextradeEvent(eventParams);
 
@@ -54,22 +49,144 @@ const getCompany = async (req, res) => {
   const currentCompany = currentUser.company;
   const profileView = req.query.profile_view;
 
-  const company = await Company.findOne({ _id: id });
+  const company = await Company.findOne({ _id: id }).populate('network.relation');
 
   if (company) {
     if (profileView && currentCompany.id !== id) {
       profileSeenEvent(currentCompany, company);
     }
+
+    // eslint-disable-next-line eqeqeq
+    const ourRelation = company.network.find(
+      // eslint-disable-next-line eqeqeq
+      (connection) => connection.company == currentCompany.id,
+    );
+
+    company.network = null;
+    company.ourRelation = ourRelation;
+
     return res.send(company);
   }
+  return ApiHelper.statusNotFound(res, 'Company not found');
+};
+
+const connectWithCompany = async (req, res) => {
+  const { id } = req.params;
+  const { currentUser } = req;
+  const currentCompany = currentUser.company;
+
+  const company = await Company.findOne({ _id: id }).populate('network.relation');
+
+  if (company) {
+    // eslint-disable-next-line no-dupe-keys
+    let relation = await Relationship.findOne({ member: currentCompany.id, member: company.id });
+
+    if (!relation) {
+      relation = new Relationship({
+        member: [
+          currentCompany.id,
+          company.id,
+        ],
+        type: relationTypes.INVITATION_SEND,
+        sender: currentCompany.id,
+      });
+
+      company.network.push({
+        company: currentCompany.id,
+        relation,
+      });
+
+      currentCompany.network.push({
+        company: company.id,
+        relation,
+      });
+
+      try {
+        await relation.save();
+        await currentCompany.save();
+        await company.save();
+
+        const eventParams = getDefaultCompanyEventParams(eventTypes.CONNECTION_REQUEST,
+          currentCompany, company);
+        const event = new GlextradeEvent(eventParams);
+
+        event.save();
+      } catch (error) {
+        console.error(error);
+        return ApiHelper.statusInternalServerError('connection error');
+      }
+      // eslint-disable-next-line eqeqeq
+    } else if (relation.type === relationTypes.INVITATION_SEND && relation.sender == company.id) {
+      console.log('inside');
+      relation.type = relationTypes.CONNECTED;
+      relation.sender = null;
+      await relation.save();
+
+      const eventParams = getDefaultCompanyEventParams(eventTypes.CONNECTION_ACCEPTED,
+        currentCompany, company);
+      const event = new GlextradeEvent(eventParams);
+
+      event.save();
+    }
+
+    const ourRelation = company.network.find(
+      // eslint-disable-next-line eqeqeq
+      (connection) => connection.company == currentCompany.id,
+    );
+
+    ourRelation.relation = relation;
+
+    company.network = null;
+    company.ourRelation = ourRelation;
+
+    return res.send(company);
+  }
+  return ApiHelper.statusNotFound(res, 'Company not found');
+};
+
+const disconnectWithCompany = async (req, res) => {
+  const { id } = req.params;
+  const { currentUser } = req;
+  const currentCompany = currentUser.company;
+
+  const company = await Company.findOne({ _id: id });
+
+  if (company) {
+    // eslint-disable-next-line no-dupe-keys
+    const relation = await Relationship.findOne({ member: currentCompany.id, member: company.id });
+
+    if (relation) {
+      currentCompany.network = currentCompany.network
+      // eslint-disable-next-line eqeqeq
+        .filter((connection) => connection.relation != relation.id);
+      // eslint-disable-next-line eqeqeq
+      company.network = company.network.filter((connection) => connection.relation != relation.id);
+
+      try {
+        await currentCompany.save();
+        await company.save();
+        await relation.delete();
+      } catch (error) {
+        console.error(error);
+        return ApiHelper.statusInternalServerError(res, 'connection error');
+      }
+    }
+
+    return res.send({
+      success: true,
+    });
+  }
+
   return ApiHelper.statusNotFound(res, 'Company not found');
 };
 
 const linkRoute = (app) => {
   app.use('/companies', route);
   route.get('/', Auth.isAuth, listCompanies);
-  route.get('/:id', Auth.needAuth, getCompany);
   route.put('/my_company', Auth.needAuth, updateCompany);
+  route.get('/:id', Auth.needAuth, getCompany);
+  route.put('/:id', Auth.needAuth, connectWithCompany);
+  route.delete('/:id', Auth.needAuth, disconnectWithCompany);
 };
 
 module.exports = {
