@@ -1,4 +1,5 @@
 const { Router } = require('express');
+const { Auth } = require('../middlewares');
 const bcrypt = require('bcrypt');
 const _ = require('lodash');
 
@@ -28,6 +29,9 @@ const auth = async (req, res) => {
       return ApiHelper.statusBadRequest(res, 'Invalid email or password');
     }
 
+    user.company = await user.company.populate('network.relation').execPopulate();
+    user.company = await user.company.populate('network.company').execPopulate();
+
     const session = await user.generateSession();
 
     return res.send({ ...session.toObject(), user: _.omit(user.toObject(), ['password']) });
@@ -35,9 +39,19 @@ const auth = async (req, res) => {
     return ApiHelper.statusBadRequest(res, 'Unexpected error');
   }
 };
+
+const updateAuth = async (req, res) => {
+  const { currentUser } = req;
+
+  currentUser.company = await currentUser.company.populate('network.relation').execPopulate();
+  currentUser.company = await currentUser.company.populate('network.company').execPopulate();
+
+  res.send(currentUser);
+}
 const linkRoute = (app) => {
   app.use('/auth', route);
 
+  route.get('/', Auth.needAuth, updateAuth);
   route.post('/', auth);
 };
 

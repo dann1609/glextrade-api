@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const { relationRef, companyRef } = require('./ref');
+const { relationRef, companyRef, chatRoomRef } = require('./ref');
 
 const ref = relationRef;
 
@@ -21,6 +21,15 @@ const relationSchema = new mongoose.Schema({
   sender: {
     type: mongoose.Schema.Types.ObjectId,
     ref: companyRef,
+  },
+  chatRoom: {
+    _id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: chatRoomRef,
+    },
+    lastMessage: {
+      type: String,
+    },
   },
 });
 

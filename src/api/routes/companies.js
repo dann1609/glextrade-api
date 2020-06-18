@@ -3,6 +3,7 @@ const { Auth } = require('../middlewares');
 const { Company } = require('../../models/company');
 const { Relationship, relationTypes } = require('../../models/relationship');
 const { GlextradeEvent, eventTypes, getDefaultCompanyEventParams } = require('../../models/glextradeEvent');
+const { ChatRoom } = require('../../models/chatRoom');
 const ApiHelper = require('../../helpers/apiHelper');
 
 const route = Router();
@@ -43,6 +44,15 @@ const updateCompany = async (req, res) => {
   }
 };
 
+const getMyCompany = async (req, res) => {
+  const { currentUser } = req;
+  const currentCompany = currentUser.company;
+
+  const company = await currentCompany.populate('network.relation').execPopulate();
+
+  return res.send(company);
+};
+
 const getCompany = async (req, res) => {
   const { id } = req.params;
   const { currentUser } = req;
@@ -79,7 +89,9 @@ const connectWithCompany = async (req, res) => {
 
   if (company) {
     // eslint-disable-next-line no-dupe-keys
-    let relation = await Relationship.findOne({ member: currentCompany.id, member: company.id });
+    let relation = await Relationship.findOne({ member: {$all:[currentCompany.id,company.id]}});
+
+    console.log(relation)
 
     if (!relation) {
       relation = new Relationship({
@@ -120,6 +132,10 @@ const connectWithCompany = async (req, res) => {
       console.log('inside');
       relation.type = relationTypes.CONNECTED;
       relation.sender = null;
+
+      const chatRoom = new ChatRoom();
+      await chatRoom.save();
+      relation.chatRoom = chatRoom;
       await relation.save();
 
       const eventParams = getDefaultCompanyEventParams(eventTypes.CONNECTION_ACCEPTED,
@@ -129,10 +145,14 @@ const connectWithCompany = async (req, res) => {
       event.save();
     }
 
+    console.log(company.network,currentCompany.id)
+
     const ourRelation = company.network.find(
       // eslint-disable-next-line eqeqeq
       (connection) => connection.company == currentCompany.id,
     );
+
+    console.log(ourRelation)
 
     ourRelation.relation = relation;
 
@@ -183,6 +203,7 @@ const disconnectWithCompany = async (req, res) => {
 const linkRoute = (app) => {
   app.use('/companies', route);
   route.get('/', Auth.isAuth, listCompanies);
+  route.get('/my_company', Auth.needAuth, getMyCompany);
   route.put('/my_company', Auth.needAuth, updateCompany);
   route.get('/:id', Auth.needAuth, getCompany);
   route.put('/:id', Auth.needAuth, connectWithCompany);

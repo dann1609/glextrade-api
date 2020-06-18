@@ -3,6 +3,7 @@ const sessionRef = 'Session';
 const userRef = 'User';
 const eventRef = 'Event';
 const relationRef = 'Relationship';
+const chatRoomRef = 'ChatRoom';
 
 module.exports = {
   companyRef,
@@ -10,4 +11,5 @@ module.exports = {
   userRef,
   eventRef,
   relationRef,
+  chatRoomRef,
 };

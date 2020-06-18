@@ -4,6 +4,7 @@ const authModule = require('./routes/auth');
 const usersModule = require('./routes/users');
 const companiesModule = require('./routes/companies');
 const notificationsModule = require('./routes/notifications');
+const messagesModule = require('./routes/messages');
 
 module.exports = () => {
   const app = Router();
@@ -12,6 +13,7 @@ module.exports = () => {
   usersModule.linkRoute(app);
   companiesModule.linkRoute(app);
   notificationsModule.linkRoute(app);
+  messagesModule.linkRoute(app);
 
   return app;
 };
