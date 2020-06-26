@@ -1,5 +1,6 @@
 const express = require('express');
 const loaders = require('./src/loaders');
+const socketIO = require('./src/loaders/socketIO')
 
 
 const app = express();
@@ -14,10 +15,13 @@ const startServer = async () => {
   console.log('\n', error || message, error ? 'Load failed' : '');
 
   const port = process.env.PORT || 3001;
-  app.listen(port, () => console.log(`
+  const server = app.listen(port, () => console.log(`
     ############################################
         🚢 Server listening on port: ${port} 🚢️️
     ############################################`));
+
+  socketIO.load(server);
+
 };
 
 startServer();

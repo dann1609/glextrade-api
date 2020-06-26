@@ -1,7 +1,7 @@
 const { Router } = require('express');
-const { Auth } = require('../middlewares');
 const bcrypt = require('bcrypt');
 const _ = require('lodash');
+const { Auth } = require('../middlewares');
 
 const { User, validateShortUser } = require('../../models/user');
 const ApiHelper = require('../../helpers/apiHelper');
@@ -47,7 +47,7 @@ const updateAuth = async (req, res) => {
   currentUser.company = await currentUser.company.populate('network.company').execPopulate();
 
   res.send(currentUser);
-}
+};
 const linkRoute = (app) => {
   app.use('/auth', route);
 

@@ -7,12 +7,12 @@ const { Relationship } = require('../../models/relationship');
 const route = Router();
 
 const getMessages = async (req, res) => {
-    const { id } = req.params;
+  const { id } = req.params;
 
-    const chatRoom = await ChatRoom.findOne({ _id: id });
+  const chatRoom = await ChatRoom.findOne({ _id: id });
 
-    res.send(chatRoom);
-}
+  res.send(chatRoom);
+};
 
 const sendMessage = async (req, res) => {
   const { id } = req.params;
@@ -38,8 +38,8 @@ const sendMessage = async (req, res) => {
   await relationship.save();
 
   return res.send({
-      message: queryObject.message,
-      owner: company.id,
+    message: queryObject.message,
+    owner: company.id,
   });
 };
 

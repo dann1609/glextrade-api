@@ -60,6 +60,9 @@ const companySchema = new mongoose.Schema({
     },
   ],
   ourRelation: {},
+  website:{
+    type: String,
+  }
 });
 
 const Company = mongoose.model(ref, companySchema);

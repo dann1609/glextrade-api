@@ -89,9 +89,11 @@ const connectWithCompany = async (req, res) => {
 
   if (company) {
     // eslint-disable-next-line no-dupe-keys
-    let relation = await Relationship.findOne({ member: {$all:[currentCompany.id,company.id]}});
+    let relation = await Relationship.findOne({
+      member: { $all: [currentCompany.id, company.id] },
+    });
 
-    console.log(relation)
+    console.log(relation);
 
     if (!relation) {
       relation = new Relationship({
@@ -145,14 +147,14 @@ const connectWithCompany = async (req, res) => {
       event.save();
     }
 
-    console.log(company.network,currentCompany.id)
+    console.log(company.network, currentCompany.id);
 
     const ourRelation = company.network.find(
       // eslint-disable-next-line eqeqeq
       (connection) => connection.company == currentCompany.id,
     );
 
-    console.log(ourRelation)
+    console.log(ourRelation);
 
     ourRelation.relation = relation;
 
