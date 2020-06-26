@@ -48,8 +48,8 @@ const updateAuth = async (req, res) => {
 
   res.send(currentUser);
 };
-const linkRoute = (app) => {
-  app.use('/auth', route);
+const linkRoute = (app,path) => {
+  app.use(path, route);
 
   route.get('/', Auth.needAuth, updateAuth);
   route.post('/', auth);

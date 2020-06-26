@@ -36,8 +36,8 @@ const setSeenAllNotifications = async (req, res) => {
   });
 };
 
-const linkRoute = (app) => {
-  app.use('/notifications', route);
+const linkRoute = (app,path) => {
+  app.use(path, route);
   route.get('/', Auth.needAuth, getMyNotifications);
   route.put('/', Auth.needAuth, setSeenAllNotifications);
 };

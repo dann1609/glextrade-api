@@ -80,8 +80,8 @@ const processVideo = async (req, res) => {
   return ApiHelper.statusBadRequest(res, 'File not supported or corrupted');
 };
 
-const linkRoute = (app) => {
-  app.use('/s3', route);
+const linkRoute = (app, path) => {
+  app.use(path, route);
 
   route.post('/sign_s3', signS3);
 

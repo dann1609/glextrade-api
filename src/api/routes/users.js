@@ -70,8 +70,8 @@ const register = async (req, res) => {
   }
 };
 
-const linkRoute = (app) => {
-  app.use('/users', route);
+const linkRoute = (app,path) => {
+  app.use(path, route);
 
   route.get('/', listUsers);
   route.post('/', register);

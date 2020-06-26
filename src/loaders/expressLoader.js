@@ -16,7 +16,15 @@ module.exports = {
       res.status(200).send(welcomeMesage);
     });
 
+    app.get('/api', (req, res) => {
+      res.status(200).send(welcomeMesage);
+    });
+
     app.post('/', (req, res) => {
+      res.status(200).send(welcomeMesage);
+    });
+
+    app.post('/api', (req, res) => {
       res.status(200).send(welcomeMesage);
     });
 
