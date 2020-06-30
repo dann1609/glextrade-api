@@ -9,12 +9,12 @@ const messagesModule = require('./routes/messages');
 module.exports = () => {
   const app = Router();
 
-  s3Module.linkRoute(app,'/api/s3');
-  authModule.linkRoute(app,'/api/auth');
-  usersModule.linkRoute(app,'/api/users');
-  companiesModule.linkRoute(app,'/api/companies');
-  notificationsModule.linkRoute(app,'/api/notifications');
-  messagesModule.linkRoute(app ,'/api/messages');
+  s3Module.linkRoute(app, '/api/s3');
+  authModule.linkRoute(app, '/api/auth');
+  usersModule.linkRoute(app, '/api/users');
+  companiesModule.linkRoute(app, '/api/companies');
+  notificationsModule.linkRoute(app, '/api/notifications');
+  messagesModule.linkRoute(app, '/api/messages');
 
   return app;
 };

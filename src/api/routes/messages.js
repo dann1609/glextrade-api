@@ -43,7 +43,7 @@ const sendMessage = async (req, res) => {
   });
 };
 
-const linkRoute = (app,path) => {
+const linkRoute = (app, path) => {
   app.use(path, route);
 
   route.get('/:id', Auth.needAuth, getMessages);

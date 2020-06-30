@@ -202,7 +202,7 @@ const disconnectWithCompany = async (req, res) => {
   return ApiHelper.statusNotFound(res, 'Company not found');
 };
 
-const linkRoute = (app,path) => {
+const linkRoute = (app, path) => {
   app.use(path, route);
   route.get('/', Auth.isAuth, listCompanies);
   route.get('/my_company', Auth.needAuth, getMyCompany);

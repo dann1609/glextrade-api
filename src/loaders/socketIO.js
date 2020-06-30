@@ -4,7 +4,9 @@ module.exports = {
   load: (server) => {
     const io = socketIO(server);
 
-    io.on('connection', (socket) => {
+    io.of('/api').on('connection', (socket) => {
+      console.log('connected');
+
       socket.on('disconnect', () => {
         console.log('browser disconnected');
       });
@@ -20,7 +22,7 @@ module.exports = {
           chatId, company, owner, message,
         } = data;
 
-        io.sockets.in(`/priv/${company._id}`).emit('msg', {
+        socket.in(`/priv/${company._id}`).emit('msg', {
           company: owner,
           lastMessage: message,
           _id: chatId,
