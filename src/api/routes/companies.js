@@ -8,13 +8,13 @@ const ApiHelper = require('../../helpers/apiHelper');
 
 const route = Router();
 
-const profileSeenEvent = (currentCompany, company) => {
+const profileSeenEvent = async (currentCompany, company) => {
   const eventParams = getDefaultCompanyEventParams(eventTypes.SEEN_PROFILE,
     currentCompany, company);
 
   const event = new GlextradeEvent(eventParams);
 
-  event.save();
+  await event.saveAndSend();
 };
 
 
@@ -124,7 +124,7 @@ const connectWithCompany = async (req, res) => {
           currentCompany, company);
         const event = new GlextradeEvent(eventParams);
 
-        event.save();
+        event.saveAndSend();
       } catch (error) {
         console.error(error);
         return ApiHelper.statusInternalServerError('connection error');
@@ -144,7 +144,7 @@ const connectWithCompany = async (req, res) => {
         currentCompany, company);
       const event = new GlextradeEvent(eventParams);
 
-      event.save();
+      event.saveAndSend();
     }
 
     console.log(company.network, currentCompany.id);
@@ -179,10 +179,9 @@ const disconnectWithCompany = async (req, res) => {
 
     if (relation) {
       currentCompany.network = currentCompany.network
-      // eslint-disable-next-line eqeqeq
         .filter((connection) => connection.relation != relation.id);
-      // eslint-disable-next-line eqeqeq
-      company.network = company.network.filter((connection) => connection.relation != relation.id);
+      company.network = company.network
+        .filter((connection) => connection.relation != relation.id);
 
       try {
         await currentCompany.save();
