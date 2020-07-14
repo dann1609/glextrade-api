@@ -27,6 +27,9 @@ const eventSchema = new mongoose.Schema({
   seen: {
     type: Boolean,
   },
+  seen_date: {
+    type: Date,
+  },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
     ref: companyRef,
