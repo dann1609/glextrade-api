@@ -1,10 +1,10 @@
 const socketIO = require('socket.io');
 
-module.exports = {
-  load: (server) => {
-    const io = socketIO(server);
+class Socket {
+  static load(server) {
+    const io = socketIO(server).of('/api');
 
-    io.of('/api').on('connection', (socket) => {
+    io.on('connection', (socket) => {
       console.log('connected');
 
       socket.on('disconnect', () => {
@@ -29,5 +29,12 @@ module.exports = {
         });
       });
     });
-  },
-};
+    Socket.io = io;
+  }
+
+  static emitToCompany(company, event, data) {
+    Socket.io.in(`/priv/${company._id}`).emit(event, data);
+  }
+}
+
+module.exports = Socket;

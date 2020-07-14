@@ -16,6 +16,7 @@ const trimVideo = ({
       console.log(`Spawned Ffmpeg with command: ${commandLine}`);
     })
     .on('progress', (progress) => {
+      console.log(progress);
       console.log(`Processing: ${progress.percent}% done`);
     })
     .on('error', (error) => {
@@ -26,6 +27,7 @@ const trimVideo = ({
       });
     })
     .on('end', () => {
+      console.log('end with', `${endDir}/${filename}.mp4`);
       resolve({
         success: true,
         path: `${endDir}/${filename}.mp4`,

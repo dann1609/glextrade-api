@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const { eventRef, companyRef } = require('./ref');
+const socketIO = require('../loaders/socketIO');
 
 const ref = eventRef;
 
@@ -26,6 +27,9 @@ const eventSchema = new mongoose.Schema({
   seen: {
     type: Boolean,
   },
+  seen_date: {
+    type: Date,
+  },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
     ref: companyRef,
@@ -33,6 +37,11 @@ const eventSchema = new mongoose.Schema({
 });
 
 const GlextradeEvent = mongoose.model(ref, eventSchema);
+
+GlextradeEvent.prototype.saveAndSend = async function () {
+  await this.save();
+  socketIO.emitToCompany(this.owner, 'notifications', 'new event');
+};
 
 const getDefaultCompanyEventParams = (eventType, currentCompany, company) => ({
   date: new Date(),
