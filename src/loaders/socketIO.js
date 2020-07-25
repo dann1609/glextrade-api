@@ -35,6 +35,11 @@ class Socket {
   static emitToCompany(company, event, data) {
     Socket.io.in(`/priv/${company._id}`).emit(event, data);
   }
+
+  static EVENTS = {
+    NOTIFICATIONS:'notifications',
+    VIDEO_UPDATED: 'video_updated',
+  }
 }
 
 module.exports = Socket;

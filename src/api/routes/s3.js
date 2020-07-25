@@ -2,6 +2,7 @@ const { Router } = require('express');
 const multer = require('multer');
 const fs = require('fs');
 
+const { Auth } = require('../middlewares');
 const ApiHelper = require('../../helpers/apiHelper');
 const s3 = require('../externalApis/s3');
 const ffmpeg = require('../externalApis/ffmpeg');
@@ -37,7 +38,7 @@ const receiveVideo = (req, res, next) => {
   });
 };
 
-const processVideo = async (req, res) => {
+const processVideo = async (req, res, next) => {
   const { filename, destination, mimetype } = req.file;
 
   const sign = await s3.signS3(filename, mimetype);
@@ -68,10 +69,9 @@ const processVideo = async (req, res) => {
     fs.unlink(editedVideo.path, Tools.errorCallback);
 
     if (uploadResponse.success) {
-      return res.send({
-        success: true,
-        url: sign.url,
-      });
+      req.url = sign.url;
+
+      return next();
     }
 
     return ApiHelper.statusInternalServerError(res, 'Video cant be uploaded to S3 bucket');
@@ -85,9 +85,11 @@ const linkRoute = (app, path) => {
 
   route.post('/sign_s3', signS3);
 
-  route.post('/upload_video', receiveVideo, processVideo);
+  route.post('/upload_video', Auth.needAuth, receiveVideo, processVideo);
 };
 
 module.exports = {
   linkRoute,
+  receiveVideo,
+  processVideo,
 };

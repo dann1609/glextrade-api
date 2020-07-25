@@ -4,7 +4,9 @@ const { Company } = require('../../models/company');
 const { Relationship, relationTypes } = require('../../models/relationship');
 const { GlextradeEvent, eventTypes, getDefaultCompanyEventParams } = require('../../models/glextradeEvent');
 const { ChatRoom } = require('../../models/chatRoom');
+const { receiveVideo, processVideo } = require('./s3');
 const ApiHelper = require('../../helpers/apiHelper');
+const socketIO = require('../../loaders/socketIO');
 
 const route = Router();
 
@@ -42,6 +44,21 @@ const updateCompany = async (req, res) => {
     console.error(error);
     ApiHelper.statusInternalServerError(res, error.message);
   }
+};
+
+const updateProfileVideo = async (req, res, next) => {
+  const { url, currentUser } = req;
+  const currentCompany = currentUser.company;
+
+  const body = {
+    videoUrl: url,
+  };
+
+  req.body = body;
+
+  socketIO.emitToCompany(currentCompany, socketIO.EVENTS.VIDEO_UPDATED, body);
+
+  next();
 };
 
 const getMyCompany = async (req, res) => {
@@ -205,6 +222,7 @@ const linkRoute = (app, path) => {
   app.use(path, route);
   route.get('/', Auth.isAuth, listCompanies);
   route.get('/my_company', Auth.needAuth, getMyCompany);
+  route.post('/update_profile_video', Auth.needAuth, receiveVideo, processVideo, updateProfileVideo, updateCompany);
   route.put('/my_company', Auth.needAuth, updateCompany);
   route.get('/:id', Auth.needAuth, getCompany);
   route.put('/:id', Auth.needAuth, connectWithCompany);

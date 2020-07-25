@@ -40,7 +40,7 @@ const GlextradeEvent = mongoose.model(ref, eventSchema);
 
 GlextradeEvent.prototype.saveAndSend = async function () {
   await this.save();
-  socketIO.emitToCompany(this.owner, 'notifications', 'new event');
+  socketIO.emitToCompany(this.owner, socketIO.EVENTS.NOTIFICATIONS, 'new event');
 };
 
 const getDefaultCompanyEventParams = (eventType, currentCompany, company) => ({
