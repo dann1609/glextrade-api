@@ -31,7 +31,7 @@ const listCompanies = async (req, res) => {
 
 const updateCompany = async (req, res) => {
   const queryObject = req.body;
-  const { currentUser } = req;
+  const { currentUser, avoidReturn } = req;
   const { company } = currentUser;
 
   Object.assign(company, queryObject);
@@ -39,10 +39,10 @@ const updateCompany = async (req, res) => {
   try {
     const savedCompany = await company.save();
 
-    res.send(savedCompany);
+    !avoidReturn && res.send(savedCompany);
   } catch (error) {
     console.error(error);
-    ApiHelper.statusInternalServerError(res, error.message);
+    !avoidReturn && ApiHelper.statusInternalServerError(res, error.message);
   }
 };
 
@@ -52,11 +52,26 @@ const updateProfileVideo = async (req, res, next) => {
 
   const body = {
     videoUrl: url,
+    uploadingVideo: false,
   };
 
   req.body = body;
+  req.avoidReturn = true;
 
   socketIO.emitToCompany(currentCompany, socketIO.EVENTS.VIDEO_UPDATED, body);
+
+  next();
+};
+
+const onProcessVideo = async (req, res, next) => {
+  const { currentUser } = req;
+  const currentCompany = currentUser.company;
+
+  currentCompany.uploadingVideo = true;
+
+  const savedCompany = await currentCompany.save();
+
+  res.send(savedCompany);
 
   next();
 };
@@ -222,7 +237,7 @@ const linkRoute = (app, path) => {
   app.use(path, route);
   route.get('/', Auth.isAuth, listCompanies);
   route.get('/my_company', Auth.needAuth, getMyCompany);
-  route.post('/update_profile_video', Auth.needAuth, receiveVideo, processVideo, updateProfileVideo, updateCompany);
+  route.post('/update_profile_video', Auth.needAuth, receiveVideo, onProcessVideo, processVideo, updateProfileVideo, updateCompany);
   route.put('/my_company', Auth.needAuth, updateCompany);
   route.get('/:id', Auth.needAuth, getCompany);
   route.put('/:id', Auth.needAuth, connectWithCompany);
