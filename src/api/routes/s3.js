@@ -69,15 +69,19 @@ const processVideo = async (req, res, next) => {
     fs.unlink(editedVideo.path, Tools.errorCallback);
 
     if (uploadResponse.success) {
-      req.url = sign.url;
+      req.videoUrl = sign.url;
 
       return next();
     }
 
-    return ApiHelper.statusInternalServerError(res, 'Video cant be uploaded to S3 bucket');
+    req.error = 'Video cant be uploaded to S3 bucket'
+
+    return next()
   }
 
-  return ApiHelper.statusBadRequest(res, 'File not supported or corrupted');
+  req.error = 'File not supported or corrupted';
+
+  return next()
 };
 
 const linkRoute = (app, path) => {

@@ -47,11 +47,11 @@ const updateCompany = async (req, res) => {
 };
 
 const updateProfileVideo = async (req, res, next) => {
-  const { url, currentUser } = req;
+  const { videoUrl, currentUser } = req;
   const currentCompany = currentUser.company;
 
   const body = {
-    videoUrl: url,
+    videoUrl: videoUrl || currentUser.company.videoUrl,
     uploadingVideo: false,
   };
 
