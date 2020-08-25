@@ -29,6 +29,15 @@ const listCompanies = async (req, res) => {
   }
 };
 
+const amountOfCompanies = async (req, res) => {
+  try {
+    const companies = await Company.find().select('name country industry type coverUrl profileUrl');
+    return res.send({ registeredCompanies: companies.length });
+  } catch (error) {
+    return ApiHelper.statusBadRequest(res, 'Unexpected error');
+  }
+};
+
 const updateCompany = async (req, res) => {
   const queryObject = req.body;
   const { currentUser, avoidReturn } = req;
@@ -59,6 +68,31 @@ const updateProfileVideo = async (req, res, next) => {
   req.avoidReturn = true;
 
   socketIO.emitToCompany(currentCompany, socketIO.EVENTS.VIDEO_UPDATED, body);
+
+  next();
+};
+
+const updateExtraPicture = async (req, res, next) => {
+  const { currentUser } = req;
+  const { position } = req.params;
+  const queryObject = req.body;
+  const currentCompany = currentUser.company;
+
+  const extraPictures = currentCompany.extraUrl;
+
+  if (extraPictures.length < 6) {
+    extraPictures.push({
+      id: Date.now(),
+      url: queryObject.url,
+    });
+  } else {
+
+  }
+
+  const body = {
+  };
+
+  req.body = body;
 
   next();
 };
@@ -235,9 +269,11 @@ const disconnectWithCompany = async (req, res) => {
 
 const linkRoute = (app, path) => {
   app.use(path, route);
-  route.get('/', Auth.isAuth, listCompanies);
+  route.get('/', listCompanies);
+  route.get('/amount', amountOfCompanies);
   route.get('/my_company', Auth.needAuth, getMyCompany);
   route.post('/update_profile_video', Auth.needAuth, receiveVideo, onProcessVideo, processVideo, updateProfileVideo, updateCompany);
+  route.post('/update_extra_picture/:position?', Auth.needAuth, updateExtraPicture, updateCompany);
   route.put('/my_company', Auth.needAuth, updateCompany);
   route.get('/:id', Auth.needAuth, getCompany);
   route.put('/:id', Auth.needAuth, connectWithCompany);

@@ -47,6 +47,9 @@ const companySchema = new mongoose.Schema({
   videoUrl: {
     type: String,
   },
+  extraUrl: [{
+    type: Object,
+  }],
   uploadingVideo: {
     type: Boolean,
   },

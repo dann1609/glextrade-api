@@ -74,14 +74,14 @@ const processVideo = async (req, res, next) => {
       return next();
     }
 
-    req.error = 'Video cant be uploaded to S3 bucket'
+    req.error = 'Video cant be uploaded to S3 bucket';
 
-    return next()
+    return next();
   }
 
   req.error = 'File not supported or corrupted';
 
-  return next()
+  return next();
 };
 
 const linkRoute = (app, path) => {

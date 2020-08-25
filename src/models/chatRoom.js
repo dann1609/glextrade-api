@@ -5,9 +5,9 @@ const { chatRoomRef } = require('./ref');
 const ref = chatRoomRef;
 
 const chatRoomSchema = new mongoose.Schema({
-  data: {
-    type: [Object],
-  },
+  data: [{
+    type: Object,
+  }],
   lastMessage: {
     type: String,
   },

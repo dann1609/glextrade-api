@@ -4,6 +4,7 @@ const userRef = 'User';
 const eventRef = 'Event';
 const relationRef = 'Relationship';
 const chatRoomRef = 'ChatRoom';
+const error = 'Error';
 
 module.exports = {
   companyRef,
@@ -12,4 +13,5 @@ module.exports = {
   eventRef,
   relationRef,
   chatRoomRef,
+  error,
 };
