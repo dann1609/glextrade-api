@@ -5,6 +5,7 @@ const usersModule = require('./routes/users');
 const companiesModule = require('./routes/companies');
 const notificationsModule = require('./routes/notifications');
 const messagesModule = require('./routes/messages');
+const errorsModule = require('./routes/errorTracked');
 
 module.exports = () => {
   const app = Router();
@@ -15,6 +16,7 @@ module.exports = () => {
   companiesModule.linkRoute(app, '/api/companies');
   notificationsModule.linkRoute(app, '/api/notifications');
   messagesModule.linkRoute(app, '/api/messages');
+  errorsModule.linkRoute(app, '/api/errors');
 
   return app;
 };
