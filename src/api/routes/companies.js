@@ -80,19 +80,20 @@ const updateExtraPicture = async (req, res, next) => {
 
   const extraPictures = currentCompany.extraUrl;
 
-  if (extraPictures.length < 6) {
-    extraPictures.push({
-      id: Date.now(),
-      url: queryObject.url,
-    });
+  const { url } = queryObject;
+
+  if (url) {
+    if (extraPictures.length < 6) {
+      extraPictures.push({
+        id: Date.now(),
+        url,
+      });
+    } else {
+
+    }
   } else {
-
+    extraPictures.splice(position, 1);
   }
-
-  const body = {
-  };
-
-  req.body = body;
 
   next();
 };
@@ -273,7 +274,7 @@ const linkRoute = (app, path) => {
   route.get('/amount', amountOfCompanies);
   route.get('/my_company', Auth.needAuth, getMyCompany);
   route.post('/update_profile_video', Auth.needAuth, receiveVideo, onProcessVideo, processVideo, updateProfileVideo, updateCompany);
-  route.post('/update_extra_picture/:position?', Auth.needAuth, updateExtraPicture, updateCompany);
+  route.put('/update_extra_picture/:position?', Auth.needAuth, updateExtraPicture, updateCompany);
   route.put('/my_company', Auth.needAuth, updateCompany);
   route.get('/:id', Auth.needAuth, getCompany);
   route.put('/:id', Auth.needAuth, connectWithCompany);
