@@ -22,7 +22,7 @@ const profileSeenEvent = async (currentCompany, company) => {
 
 const listCompanies = async (req, res) => {
   try {
-    const companies = await Company.find().select('name country industry type coverUrl profileUrl');
+    const companies = await Company.find().sort({profileUrl: -1, coverUrl: -1, videoUrl: -1}).select('name country industry type coverUrl profileUrl');
     return res.send({ companies });
   } catch (error) {
     return ApiHelper.statusBadRequest(res, 'Unexpected error');
