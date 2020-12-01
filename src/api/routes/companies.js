@@ -1,40 +1,70 @@
-const { Router } = require('express');
-const { Auth } = require('../middlewares');
-const { Company } = require('../../models/company');
-const { Relationship, relationTypes } = require('../../models/relationship');
-const { GlextradeEvent, eventTypes, getDefaultCompanyEventParams } = require('../../models/glextradeEvent');
-const { ChatRoom } = require('../../models/chatRoom');
-const { receiveVideo, processVideo } = require('./s3');
-const ApiHelper = require('../../helpers/apiHelper');
-const socketIO = require('../../loaders/socketIO');
+const { Router } = require("express");
+const { Auth } = require("../middlewares");
+const { Company } = require("../../models/company");
+const { Relationship, relationTypes } = require("../../models/relationship");
+const {
+  GlextradeEvent,
+  eventTypes,
+  getDefaultCompanyEventParams,
+} = require("../../models/glextradeEvent");
+const { ChatRoom } = require("../../models/chatRoom");
+const { receiveVideo, processVideo } = require("./s3");
+const ApiHelper = require("../../helpers/apiHelper");
+const socketIO = require("../../loaders/socketIO");
 
 const route = Router();
 
 const profileSeenEvent = async (currentCompany, company) => {
-  const eventParams = getDefaultCompanyEventParams(eventTypes.SEEN_PROFILE,
-    currentCompany, company);
+  const eventParams = getDefaultCompanyEventParams(
+    eventTypes.SEEN_PROFILE,
+    currentCompany,
+    company
+  );
 
   const event = new GlextradeEvent(eventParams);
 
   await event.saveAndSend();
 };
 
-
 const listCompanies = async (req, res) => {
   try {
-    const companies = await Company.find().sort({profileUrl: -1, coverUrl: -1, videoUrl: -1}).select('name country industry type coverUrl profileUrl');
+    const industry = req.query.industry;
+    const type_industry = req.query.type;
+    const country = req.query.country;
+
+    let query = {};
+
+    if(industry){
+      query = {...query, industry: industry}
+    }
+
+    if(type_industry){
+      query = {...query, type: type_industry}
+    }
+
+    if(country){
+      query = {...query, country: country}
+    }
+
+    // let query = { industry: industry};
+
+    const companies = await Company.find(query)
+      .sort({ profileUrl: -1, coverUrl: -1,  videoUrl: -1 })
+      .select("name country industry type coverUrl profileUrl");
     return res.send({ companies });
   } catch (error) {
-    return ApiHelper.statusBadRequest(res, 'Unexpected error');
+    return ApiHelper.statusBadRequest(res, "Unexpected error");
   }
 };
 
 const amountOfCompanies = async (req, res) => {
   try {
-    const companies = await Company.find().select('name country industry type coverUrl profileUrl');
+    const companies = await Company.find().select(
+      "name country industry type coverUrl profileUrl"
+    );
     return res.send({ registeredCompanies: companies.length });
   } catch (error) {
-    return ApiHelper.statusBadRequest(res, 'Unexpected error');
+    return ApiHelper.statusBadRequest(res, "Unexpected error");
   }
 };
 
@@ -89,7 +119,6 @@ const updateExtraPicture = async (req, res, next) => {
         url,
       });
     } else {
-
     }
   } else {
     extraPictures.splice(position, 1);
@@ -115,7 +144,9 @@ const getMyCompany = async (req, res) => {
   const { currentUser } = req;
   const currentCompany = currentUser.company;
 
-  const company = await currentCompany.populate('network.relation').execPopulate();
+  const company = await currentCompany
+    .populate("network.relation")
+    .execPopulate();
 
   return res.send(company);
 };
@@ -126,7 +157,9 @@ const getCompany = async (req, res) => {
   const currentCompany = currentUser.company;
   const profileView = req.query.profile_view;
 
-  const company = await Company.findOne({ _id: id }).populate('network.relation');
+  const company = await Company.findOne({ _id: id }).populate(
+    "network.relation"
+  );
 
   if (company) {
     if (profileView && currentCompany.id !== id) {
@@ -136,7 +169,7 @@ const getCompany = async (req, res) => {
     // eslint-disable-next-line eqeqeq
     const ourRelation = company.network.find(
       // eslint-disable-next-line eqeqeq
-      (connection) => connection.company == currentCompany.id,
+      (connection) => connection.company == currentCompany.id
     );
 
     company.network = null;
@@ -144,7 +177,7 @@ const getCompany = async (req, res) => {
 
     return res.send(company);
   }
-  return ApiHelper.statusNotFound(res, 'Company not found');
+  return ApiHelper.statusNotFound(res, "Company not found");
 };
 
 const connectWithCompany = async (req, res) => {
@@ -152,7 +185,9 @@ const connectWithCompany = async (req, res) => {
   const { currentUser } = req;
   const currentCompany = currentUser.company;
 
-  const company = await Company.findOne({ _id: id }).populate('network.relation');
+  const company = await Company.findOne({ _id: id }).populate(
+    "network.relation"
+  );
 
   if (company) {
     // eslint-disable-next-line no-dupe-keys
@@ -164,10 +199,7 @@ const connectWithCompany = async (req, res) => {
 
     if (!relation) {
       relation = new Relationship({
-        member: [
-          currentCompany.id,
-          company.id,
-        ],
+        member: [currentCompany.id, company.id],
         type: relationTypes.INVITATION_SEND,
         sender: currentCompany.id,
       });
@@ -187,18 +219,24 @@ const connectWithCompany = async (req, res) => {
         await currentCompany.save();
         await company.save();
 
-        const eventParams = getDefaultCompanyEventParams(eventTypes.CONNECTION_REQUEST,
-          currentCompany, company);
+        const eventParams = getDefaultCompanyEventParams(
+          eventTypes.CONNECTION_REQUEST,
+          currentCompany,
+          company
+        );
         const event = new GlextradeEvent(eventParams);
 
         event.saveAndSend();
       } catch (error) {
         console.error(error);
-        return ApiHelper.statusInternalServerError('connection error');
+        return ApiHelper.statusInternalServerError("connection error");
       }
       // eslint-disable-next-line eqeqeq
-    } else if (relation.type === relationTypes.INVITATION_SEND && relation.sender == company.id) {
-      console.log('inside');
+    } else if (
+      relation.type === relationTypes.INVITATION_SEND &&
+      relation.sender == company.id
+    ) {
+      console.log("inside");
       relation.type = relationTypes.CONNECTED;
       relation.sender = null;
 
@@ -207,8 +245,11 @@ const connectWithCompany = async (req, res) => {
       relation.chatRoom = chatRoom;
       await relation.save();
 
-      const eventParams = getDefaultCompanyEventParams(eventTypes.CONNECTION_ACCEPTED,
-        currentCompany, company);
+      const eventParams = getDefaultCompanyEventParams(
+        eventTypes.CONNECTION_ACCEPTED,
+        currentCompany,
+        company
+      );
       const event = new GlextradeEvent(eventParams);
 
       event.saveAndSend();
@@ -218,7 +259,7 @@ const connectWithCompany = async (req, res) => {
 
     const ourRelation = company.network.find(
       // eslint-disable-next-line eqeqeq
-      (connection) => connection.company == currentCompany.id,
+      (connection) => connection.company == currentCompany.id
     );
 
     console.log(ourRelation);
@@ -230,7 +271,7 @@ const connectWithCompany = async (req, res) => {
 
     return res.send(company);
   }
-  return ApiHelper.statusNotFound(res, 'Company not found');
+  return ApiHelper.statusNotFound(res, "Company not found");
 };
 
 const disconnectWithCompany = async (req, res) => {
@@ -242,13 +283,18 @@ const disconnectWithCompany = async (req, res) => {
 
   if (company) {
     // eslint-disable-next-line no-dupe-keys
-    const relation = await Relationship.findOne({ member: currentCompany.id, member: company.id });
+    const relation = await Relationship.findOne({
+      member: currentCompany.id,
+      member: company.id,
+    });
 
     if (relation) {
-      currentCompany.network = currentCompany.network
-        .filter((connection) => connection.relation != relation.id);
-      company.network = company.network
-        .filter((connection) => connection.relation != relation.id);
+      currentCompany.network = currentCompany.network.filter(
+        (connection) => connection.relation != relation.id
+      );
+      company.network = company.network.filter(
+        (connection) => connection.relation != relation.id
+      );
 
       try {
         await currentCompany.save();
@@ -256,7 +302,7 @@ const disconnectWithCompany = async (req, res) => {
         await relation.delete();
       } catch (error) {
         console.error(error);
-        return ApiHelper.statusInternalServerError(res, 'connection error');
+        return ApiHelper.statusInternalServerError(res, "connection error");
       }
     }
 
@@ -265,20 +311,33 @@ const disconnectWithCompany = async (req, res) => {
     });
   }
 
-  return ApiHelper.statusNotFound(res, 'Company not found');
+  return ApiHelper.statusNotFound(res, "Company not found");
 };
 
 const linkRoute = (app, path) => {
   app.use(path, route);
-  route.get('/', listCompanies);
-  route.get('/amount', amountOfCompanies);
-  route.get('/my_company', Auth.needAuth, getMyCompany);
-  route.post('/update_profile_video', Auth.needAuth, receiveVideo, onProcessVideo, processVideo, updateProfileVideo, updateCompany);
-  route.put('/update_extra_picture/:position?', Auth.needAuth, updateExtraPicture, updateCompany);
-  route.put('/my_company', Auth.needAuth, updateCompany);
-  route.get('/:id', Auth.needAuth, getCompany);
-  route.put('/:id', Auth.needAuth, connectWithCompany);
-  route.delete('/:id', Auth.needAuth, disconnectWithCompany);
+  route.get("/", listCompanies);
+  route.get("/amount", amountOfCompanies);
+  route.get("/my_company", Auth.needAuth, getMyCompany);
+  route.post(
+    "/update_profile_video",
+    Auth.needAuth,
+    receiveVideo,
+    onProcessVideo,
+    processVideo,
+    updateProfileVideo,
+    updateCompany
+  );
+  route.put(
+    "/update_extra_picture/:position?",
+    Auth.needAuth,
+    updateExtraPicture,
+    updateCompany
+  );
+  route.put("/my_company", Auth.needAuth, updateCompany);
+  route.get("/:id", Auth.needAuth, getCompany);
+  route.put("/:id", Auth.needAuth, connectWithCompany);
+  route.delete("/:id", Auth.needAuth, disconnectWithCompany);
 };
 
 module.exports = {
