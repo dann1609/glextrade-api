@@ -47,7 +47,7 @@ const processVideo = async (req, res, next) => {
     filename,
     dir: destination,
     startTime: 0,
-    duration: 30,
+    duration: 300,
   };
 
   const editedVideo = await ffmpeg.trimVideo(trimOptions);
