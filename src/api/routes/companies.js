@@ -1,11 +1,16 @@
 const { Router } = require("express");
 const { Auth } = require("../middlewares");
 const { Company } = require("../../models/company");
-const { Relationship, relationTypes } = require("../../models/relationship");
+const {
+  Relationship,
+  relationTypes,
+  statusRelationTypes,
+} = require("../../models/relationship");
 const {
   GlextradeEvent,
   eventTypes,
   getDefaultCompanyEventParams,
+  statusTypes,
 } = require("../../models/glextradeEvent");
 const { ChatRoom } = require("../../models/chatRoom");
 const { receiveVideo, processVideo } = require("./s3");
@@ -34,22 +39,22 @@ const listCompanies = async (req, res) => {
 
     let query = {};
 
-    if(industry){
-      query = {...query, industry: industry}
+    if (industry) {
+      query = { ...query, industry: industry };
     }
 
-    if(type_industry){
-      query = {...query, type: type_industry}
+    if (type_industry) {
+      query = { ...query, type: type_industry };
     }
 
-    if(country){
-      query = {...query, country: country}
+    if (country) {
+      query = { ...query, country: country };
     }
 
     // let query = { industry: industry};
 
     const companies = await Company.find(query)
-      .sort({ profileUrl: -1, coverUrl: -1,  videoUrl: -1 })
+      .sort({ profileUrl: -1, coverUrl: -1, videoUrl: -1 })
       .select("name country industry type coverUrl profileUrl");
     return res.send({ companies });
   } catch (error) {
@@ -182,6 +187,8 @@ const getCompany = async (req, res) => {
 
 const connectWithCompany = async (req, res) => {
   const { id } = req.params;
+  const queryObject = req.body;
+  const { status } = queryObject;
   const { currentUser } = req;
   const currentCompany = currentUser.company;
 
@@ -202,6 +209,7 @@ const connectWithCompany = async (req, res) => {
         member: [currentCompany.id, company.id],
         type: relationTypes.INVITATION_SEND,
         sender: currentCompany.id,
+        status: statusRelationTypes.PENDING,
       });
 
       company.network.push({
@@ -233,12 +241,12 @@ const connectWithCompany = async (req, res) => {
       }
       // eslint-disable-next-line eqeqeq
     } else if (
-      relation.type === relationTypes.INVITATION_SEND &&
+      status === statusRelationTypes.CONNECTED &&
       relation.sender == company.id
     ) {
       console.log("inside");
       relation.type = relationTypes.CONNECTED;
-      relation.sender = null;
+      relation.status = statusRelationTypes.CONNECTED;
 
       const chatRoom = new ChatRoom();
       await chatRoom.save();
@@ -253,21 +261,53 @@ const connectWithCompany = async (req, res) => {
       const event = new GlextradeEvent(eventParams);
 
       event.saveAndSend();
+    } else if (
+      status === statusRelationTypes.DECLINED &&
+      relation.sender == company.id
+    ) {
+      console.log("DECLINE");
+      relation.type = relationTypes.DECLINED;
+
+      var query = { _id: relation.id };
+
+      Relationship.findOneAndUpdate(
+        query,
+        { status: relationTypes.DECLINED, type: relationTypes.DECLINED },
+        { upsert: true },
+        function (err, doc) {
+          if (err) return res.send(500, { error: err });
+          return res.send("Succesfully declined.");
+        }
+      );
+
+      var newNetwork = company.network.map((connection) => {
+        if (connection.company == currentCompany.id) {
+          connection['status'] = statusRelationTypes.DECLINED;
+          return connection;
+        }
+        return connection;
+      });
+
+      company.network = newNetwork;
+      company.save();
     }
 
-    console.log(company.network, currentCompany.id);
+    if (status !== statusRelationTypes.DECLINED) {
+      console.log(company.network, currentCompany.id);
 
-    const ourRelation = company.network.find(
-      // eslint-disable-next-line eqeqeq
-      (connection) => connection.company == currentCompany.id
-    );
+      const ourRelation = company.network.find(
+        // eslint-disable-next-line eqeqeq
+        (connection) =>
+          connection.company == currentCompany.id &&
+          connection.status !== relationTypes.DECLINED
+      );
 
-    console.log(ourRelation);
+      console.log(ourRelation);
 
-    ourRelation.relation = relation;
+      ourRelation.relation = relation;
 
-    company.network = null;
-    company.ourRelation = ourRelation;
+      company.ourRelation = ourRelation;
+    }
 
     return res.send(company);
   }

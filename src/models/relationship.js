@@ -7,6 +7,13 @@ const ref = relationRef;
 const relationTypes = {
   INVITATION_SEND: 'INVITATION_SEND',
   CONNECTED: 'CONNECTED',
+  DECLINED: 'DECLINED'
+};
+
+const statusRelationTypes = {
+  PENDING: 'pending',
+  DECLINED: 'declined',
+  CONNECTED: 'connected'
 };
 
 const relationSchema = new mongoose.Schema({
@@ -31,6 +38,9 @@ const relationSchema = new mongoose.Schema({
       type: String,
     },
   },
+  status: {
+    type: String
+  }
 });
 
 const Relationship = mongoose.model(ref, relationSchema);
@@ -38,3 +48,4 @@ const Relationship = mongoose.model(ref, relationSchema);
 module.exports.relationRef = ref;
 module.exports.Relationship = Relationship;
 module.exports.relationTypes = relationTypes;
+module.exports.statusRelationTypes = statusRelationTypes;

@@ -63,6 +63,7 @@ const companySchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: relationRef,
       },
+      status: String
     },
   ],
   ourRelation: {},
