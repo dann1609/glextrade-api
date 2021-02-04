@@ -1,6 +1,6 @@
-const { Router } = require('express');
-const { Auth } = require('../middlewares');
-const { GlextradeEvent } = require('../../models/glextradeEvent');
+const { Router } = require("express");
+const { Auth } = require("../middlewares");
+const { GlextradeEvent, statusTypes } = require("../../models/glextradeEvent");
 
 const route = Router();
 
@@ -8,9 +8,11 @@ const getMyNotifications = async (req, res) => {
   const { currentUser } = req;
   const currentCompany = currentUser.company;
 
-  const notifications = await GlextradeEvent.find({ owner: currentCompany }).populate({
-    path: 'data.company',
-    model: 'Company',
+  const notifications = await GlextradeEvent.find({
+    owner: currentCompany,
+  }).populate({
+    path: "data.company",
+    model: "Company",
   });
 
   const activeNotifications = [];
@@ -26,7 +28,6 @@ const getMyNotifications = async (req, res) => {
         return null;
       }
     }
-
     activeNotifications.push(notification);
 
     return null;
@@ -60,6 +61,23 @@ const setSeenAllNotifications = async (req, res) => {
   });
 };
 
+const changeNotificationsStatus = async (req, res) => {
+  const { id } = req.params;
+  var query = { _id: id };
+  const queryObject = req.body;
+  const { status } = queryObject;
+
+  GlextradeEvent.findOneAndUpdate(
+    query,
+    { status: status },
+    { upsert: true },
+    function (err, doc) {
+      if (err) return res.send(500, { error: err });
+      return res.send("Succesfully declined.");
+    }
+  );
+};
+
 const deleteNotifications = async (req, res) => {
   const { id } = req.params;
   const { currentUser } = req;
@@ -80,9 +98,10 @@ const deleteNotifications = async (req, res) => {
 
 const linkRoute = (app, path) => {
   app.use(path, route);
-  route.get('/', Auth.needAuth, getMyNotifications);
-  route.put('/', Auth.needAuth, setSeenAllNotifications);
-  route.delete('/:id', Auth.needAuth, deleteNotifications);
+  route.get("/", Auth.needAuth, getMyNotifications);
+  route.put("/", Auth.needAuth, setSeenAllNotifications);
+  route.put("/changeStatus/:id", Auth.needAuth, changeNotificationsStatus);
+  route.delete("/:id", Auth.needAuth, deleteNotifications);
 };
 
 module.exports = {

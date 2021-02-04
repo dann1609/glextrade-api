@@ -11,6 +11,12 @@ const eventTypes = {
   CONNECTION_ACCEPTED: 'CONNECTION_ACCEPTED',
 };
 
+const statusTypes = {
+  PENDING: 'pending',
+  DECLINED: 'declined',
+  CONNECTED: 'connected'
+};
+
 const eventSchema = new mongoose.Schema({
   date: {
     type: Date,
@@ -34,6 +40,9 @@ const eventSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: companyRef,
   },
+  status:{
+    type: String
+  }
 });
 
 const GlextradeEvent = mongoose.model(ref, eventSchema);
@@ -50,9 +59,11 @@ const getDefaultCompanyEventParams = (eventType, currentCompany, company) => ({
     company: currentCompany.id,
   },
   owner: company,
+  status: "active"
 });
 
 module.exports.eventRef = ref;
 module.exports.GlextradeEvent = GlextradeEvent;
 module.exports.eventTypes = eventTypes;
+module.exports.statusTypes=statusTypes;
 module.exports.getDefaultCompanyEventParams = getDefaultCompanyEventParams;
